@@ -24,7 +24,7 @@ file_in.close()
 file_in = open('div_dep.in', 'r')'''
 
 for line in filehandle:
-    temp = re.search(r'<H6>(\s?\d\d\d\s[a-zA-Z. ]+)[Cons]?[Math]?[Open]?[a-zA-Z0-9. ]+</H6>', line)
+    temp = re.search(r'<.{1,2}>(\s?\d\d\d\s[a-zA-Z., ]+)(Cons\s.*)?(Math\s.*)?(Open\s.*)?[a-zA-Z0-9. ]+</.{1,2}>', line)
     if temp is not None:
         div = temp.group(1).replace('&amp;', 'AND').replace(',', '/').strip()
         #udds[div] = {}
