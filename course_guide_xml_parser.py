@@ -1,28 +1,27 @@
 #!/usr/bin/env python
 
-""" A script to gather the 
-divisions and departments of 
-the UW from the UDDS page
-and form a CSV flie"""
+"""
+Author:         Garret Handel
+Last Updated:   2014/02/10
+Description:    A script to gather the 
+                    courses and associated information
+                    from and XML document of the course
+                    list and form a CSV flie
+"""
 
-import re, sys, os.path, urllib, operator
+import re, sys, os, urllib, operator
 
-filehandle = open('PDF_Schedule_of_Classes_1144.xml', 'r')
-
-#file_in = open('div_dep.in', 'w')
+# FILE HANDLING - Open XML and initialize CSV
+for x in os.listdir(os.getcwd()):
+    if x.endswith(".xml"):
+        xml = x
+if xml is None:
+    print('No XML file found in current directory! Quitting.')
+    sys.exit(1)
+filehandle = open(xml, 'r')
 file_out = open('uwmadison_2014_spring_courses.csv', 'w')
 
-#udds = {}
-udds = []
-
-'''for line in filehandle:
-    temp = re.split('<br>', line)
-    for piece in temp:
-        file_in.write('%s\n' % piece)
-
-file_in.close()
-file_in = open('div_dep.in', 'r')'''
-
+# Define search string to split off unneeded text on course title
 split_str = 'Chem\s\d+|Math\s.+|Grad\ss?t?o?r?|Cons\s.*|Biochem\s.*|AAE\s.*|[FJS][ro]/?\s.*|BSE\s.*|\(|Physics\s\d.*|Open\s.*| \
 Junior\s.*|College\slevel.*|Dy\sSci\s.*|An\s[^I].*|Intro\s.*|Entom\s.*|Food\sSci\s.*|Class\sCr.*|Stdt.*|Genetics\s\d.*| \
 Honors\scandidacy.*|Honors\sprogram.*|Hon\sprog\s.*|Civ\sEngr.*|L\sSc\sCom\s.*|Land\sArc\s.*|At\sleast\s.*|Journ\s.*|Microbio\s.*| \
@@ -42,76 +41,51 @@ Stats/.*|Math/.*|Span\s\d.*|Spanish\slang.*|Soc\swork.*|Scand\sSt\s\d.*|Portugue
 Enroll\sin\s.*|Philos\s\d.*|Physcis\s\d.*|Am\sLit\s.*|Submission\s.*|ESL\sAss.*|Prerequisites\s.*|Grade\sof\s.*| \
 Com\sA\..*|Adv\s.*|Quantitative\s.*'
 
-#division_search = '<[TH4]{2}\sid\=\"LinkTarget_\d{4}">\s?(College\sof\s[a-zA-Z ]+)\(.*\).*'
+# Define search strings for finding division, department, and course number and title
 division_search = '<(TH|H4)\sid\=\"LinkTarget_\d{4}\">((College\sof|School\sof|Air,)[a-zA-Z&;, ]+)\([a-zA-Z& ]+\)\s?([A-Z&, ]+)(\(\d\d\d\s\))?'
-#department_search = '<(TH|H4)\sid\=\"LinkTarget_\d{4}">\s?([A-Z&;\(\) ]+)</[TH4]{2}>'
 department_search = '<(TH|H4)\sid\=\"LinkTarget_\d{4}">\s?([A-Z&;\(\) ]+)</[TH4]{2}>([a-zA-Z&;, ]+\(.*\).*)?'
 course_search = '<[DHPT6]{1,2}>\s?(\d{3})\s([a-zA-Z0-9\.&;:,\-()/ ]+)</[DHPT6]{1,2}>'
 
+# Initialize variables to avoid uninitialized variable errors
 division = ''
 department =''
 course_title = ''
 course_number = ''
+courses = []
 
+# Begin search. Read lines from input file and apply RegEx searches to find appropriate information
 for line in filehandle:
-    # find the DEPARTMENT
     line = line.replace('&amp;', '&')
     # find the DIVISION
     division_temp = re.search(r'%s' % (division_search), line)
     if division_temp is not None:
         division = division_temp.group(2).replace(',', '/')
+        # Check for DEPARTMENT included on same line as division (only a couple cases of this)
         if division_temp.group(4) is not None:
             department = division_temp.group(4).replace(',', '/')
     else:
+        # find the DEPARTMENT
         department_temp = re.search(r'%s' % (department_search), line)
         if department_temp is not None:
             department = department_temp.group(2).replace(',', '/')
-
-
-            # check to see if DEPARTMENT is stuck on end of DIVISION
-            '''department_temp = re.split('\)', division)
-            if len(department_temp) > 1:
-                temp = re.search(r'[A-Z ]+', department_temp[1])
-                if temp is not None and temp.group(0) != department:
-                    department = temp.group(0)
-                    division = '%s)' % department_temp[0]'''
         else:
+            # find COURSE TITLE and COURSE NUMBER
             course_temp = re.search(r'%s' % (course_search), line)
             if course_temp is not None:
                 course_number = course_temp.group(1)
                 course_title = re.split(split_str, course_temp.group(2).replace(',', '/'))[0]
+                # Extract COURSE NUMBER and add COURSE INFO to the array
                 if re.search(r'\d\d\d', course_title) is None:
-                    udds.append('%s,%s,%s,%s' % (division.rstrip(), department.rstrip(), course_number, course_title))
-    '''else:
-        temp = re.search(r'A\d{2}\s+\d{2}\s+([a-zA-Z ]+)\s+', line)
-        if temp is not None:
-            dept = temp.group(1).replace('&amp;', 'AND').replace(',', '/').strip()
-            if dept not in udds[div]:
-                udds[div][dept] = []
-        else: 
-            temp = re.search(r'A\d{2}\s+\d{4}\s+([a-zA-Z ]+)\s+', line)
-            if temp is not None:
-                unit = temp.group(1).replace('&amp;', 'AND').replace(',', '/').strip()
-                if unit not in udds[div][dept]:
-                    udds[div][dept].append(unit)'''
+                    courses.append('%s,%s,%s,%s' % (division.rstrip(), department.rstrip(), course_number, course_title))
 
-file_out.write('Division, Departent, Course Number, Course Title\n')
+# Initialize CSV with headers
+file_out.write('Division, Department, Course Number, Course Title\n')
 
-"""for division in udds:
-    for department in udds[division]:
-        for i in xrange(len(department) - 1):
-            file_out.write('%s, %s, %s\n' % \
-            (division, department, udds[division][department][i]))"""
+# Write entries from array to CSV
+for course in courses:
+    file_out.write('%s\n' % course)
 
-for divi in udds:
-    file_out.write('%s\n' % divi)
-    '''for dep in udds[divi]:
-        for i in xrange(len(udds[divi][dep])):
-            file_out.write('%s, %s, %s\n' % \
-            (divi, dep, udds[divi][dep][i]))'''
-
+# Close files and exit safely
 filehandle.close()
-#file_in.close()
 file_out.close()
-#os.remove('div_dep.in')
 sys.exit(0)
