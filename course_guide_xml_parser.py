@@ -21,7 +21,7 @@ if xml is None:
 filehandle = open(xml, 'r')
 file_out = open('uwmadison_2014_spring_courses.csv', 'w')
 
-# Define search string to split off unneeded text on course title
+# Define search string to split off prerequisites text on course title
 split_str = 'Chem\s\d+|Math\s.+|Grad\ss?t?o?r?|Cons\s.*|Biochem\s.*|AAE\s.*|[FJS][ro]/?\s.*|BSE\s.*|\(|Physics\s\d.*|Open\s.*| \
 Junior\s.*|College\slevel.*|Dy\sSci\s.*|An\s[^I].*|Intro\s.*|Entom\s.*|Food\sSci\s.*|Class\sCr.*|Stdt.*|Genetics\s\d.*| \
 Honors\scandidacy.*|Honors\sprogram.*|Hon\sprog\s.*|Civ\sEngr.*|L\sSc\sCom\s.*|Land\sArc\s.*|At\sleast\s.*|Journ\s.*|Microbio\s.*| \
@@ -42,8 +42,10 @@ Enroll\sin\s.*|Philos\s\d.*|Physcis\s\d.*|Am\sLit\s.*|Submission\s.*|ESL\sAss.*|
 Com\sA\..*|Adv\s.*|Quantitative\s.*'
 
 # Define search strings for finding division, department, and course number and title
-division_search = '<(TH|H4)\sid\=\"LinkTarget_\d{4}\">((College\sof|School\sof|Air,)[a-zA-Z&;, ]+)\([a-zA-Z& ]+\)\s?([A-Z&, ]+)(\(\d\d\d\s\))?'
+division_search = '<(TH|H4)\sid\=\"LinkTarget_\d{4}\">((College\sof|School\sof|Air,)[a-zA-Z&;, ]+)\([a-zA-Z& ]+\)\s?(AIR\sFORCE\sAEROSPACE\sSTUDIES\s|AFRICAN\sLANGUAGES\s&LITERATURE\s|COMPARATIVE\sBIOSCIENCES\s)?((A\sF\sAERO\s|AFRICAN\s|COMP\sBIO\s)\(\d\d\d\s\))?'
+# This was the old, robust division search before the exceptions above '<(TH|H4)\sid\=\"LinkTarget_\d{4}\">((College\sof|School\sof|Air,)[a-zA-Z&;, ]+)\([a-zA-Z& ]+\)\s?([A-Z&, ]+)(\(\d\d\d\s\))?'
 department_search = '<(TH|H4)\sid\=\"LinkTarget_\d{4}">\s?([A-Z&;\(\) ]+)</[TH4]{2}>([a-zA-Z&;, ]+\(.*\).*)?'
+
 course_search = '<[DHPT6]{1,2}>\s?(\d{3})\s([a-zA-Z0-9\.&;:,\-()/ ]+)</[DHPT6]{1,2}>'
 
 # Initialize variables to avoid uninitialized variable errors
@@ -79,7 +81,7 @@ for line in filehandle:
                     courses.append('%s,%s,%s,%s' % (division.rstrip(), department.rstrip(), course_number, course_title))
 
 # Initialize CSV with headers
-file_out.write('Division, Department, Course Number, Course Title\n')
+file_out.write('Subject Number Title,Instructor,Division,Department,Subject,Course Number,Course Title\n')
 
 # Write entries from array to CSV
 for course in courses:
