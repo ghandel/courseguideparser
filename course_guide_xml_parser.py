@@ -94,7 +94,8 @@ for line in filehandle:
                         # Extract COURSE NUMBER and add COURSE INFO to the array
                         if re.search(r'\d\d\d', course_title) is None:
                             subject_number_title = ('%s %s %s' % (subject, course_number, course_title))
-                            courses.append('\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\'' % (subject_number_title, instructor, division.rstrip(), department.rstrip(), subject, course_number, course_title))
+                            courses.append('\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\',\'%s\'' % \
+                                (subject_number_title.rstrip(), instructor.rstrip(), division.rstrip(), department.rstrip(), subject.rstrip(), course_number.rstrip(), course_title.rstrip()))
 
 # Initialize CSV with headers
 file_out.write('Subject Number Title,Instructor,Division,Department,Subject,Course Number,Course Title\n')
